@@ -23,7 +23,7 @@ In this homework, you will implement a translator that converts a Bril program i
    ```
 
 3. Copy Your SSA Implementation from Homework 2:
-- **Copy your implementations from Homework 2 into the `src/` directory.** This should include your SSA construction code (`ssa_construct.py`) and any other supporting files you created.
+- **Copy your implementations from Homework 2 into the `src/` directory.** This should include your SSA construction code and any other supporting files you created.
 - Ensure that your SSA construction code works correctly, as you will build upon it in this assignment.
 
 ## Project Structure
@@ -38,7 +38,7 @@ homework-directory/
 │   ├── ssa_to_llvm.py
 │   └── [other source files]
 ├── tests/
-│   ├── simple.bril
+│   ├── loop.bril
 │   └── [additional test cases]
 ├── bril/
 ├── install_bril.sh
@@ -77,12 +77,12 @@ The outputs should match exactly if your translation is correct.
 ## Submission Instructions
 
 1. Open `student_id.txt` and replace the placeholder with your actual student ID.
-2. Implement all required functionalities in the `src/` directory, focusing on `ssa_to_llvm.py` and `driver.py`.
+2. Implement all required functionalities in the `src/` directory, focusing on `ssa_to_llvm.py`.
 3. Test your implementation thoroughly.
 4. Commit and push your changes:
    ```bash
    git add src/ student_id.txt
-   git commit -m "Completed Homework 2"
+   git commit -m "Completed Homework 3"
    git push origin main
    ```
 5. Verify that the GitHub Actions workflow passes all tests.
