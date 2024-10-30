@@ -1,0 +1,118 @@
+name: Autograding Tests
+on:
+  push:
+    branches: [main]
+
+permissions:
+  checks: write
+  actions: read
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+  
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
+      - name: Install LLVM and Clang
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 17
+          sudo apt-get install -y llvm-17 llvm-17-dev llvm-17-runtime clang-17
+          sudo update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-17 100
+          sudo update-alternatives --install /usr/bin/lli lli /usr/bin/lli-17 100
+          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-17 100
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Bril toolchain
+        run:
+          bash install_bril.sh
+  
+      - name: Problem-1 - Test loop.bril
+        id: problem-1
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Test loop.bril
+          command: bash ./run_test_case.sh tests/loop.bril
+          max-score: 1
+        
+      - name: Problem-2 - Test self_loop.bril
+        id: problem-2
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Test self_loop.bril
+          command: bash ./run_test_case.sh tests/self_loop.bril
+          max-score: 1
+  
+      - name: Problem-3 - Test while.bril
+        id: problem-3
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Test while.bril
+          command: bash ./run_test_case.sh tests/while.bril
+          max-score: 1
+  
+      - name: Problem-4 - Test factors.bril
+        id: problem-4
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Test factors.bril
+          command: bash ./run_test_case.sh tests/factors.bril
+          max-score: 1
+  
+      - name: Problem-5 - Test reverse.bril
+        id: problem-5
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Test reverse.bril
+          command: bash ./run_test_case.sh tests/reverse.bril
+          max-score: 1
+  
+      - name: Problem-6 - Test pascals_rows.bril
+        id: problem-6
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Test pascals_rows.bril
+          command: bash ./run_test_case.sh tests/pascals_rows.bril
+          max-score: 1
+
+      - name: Problem-7 - Test fizz-buzz.bril
+        id: problem-7
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Test fizz-buzz.bril
+          command: bash ./run_test_case.sh tests/fizz-buzz.bril
+          max-score: 1
+
+      - name: Problem-8 - Test armstrong.bril
+        id: problem-8
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Test armstrong.bril
+          command: bash ./run_test_case.sh tests/armstrong.bril
+          max-score: 1
+
+      - name: Autograding Reporter
+        uses: classroom-resources/autograding-grading-reporter@v1
+        env:
+          PROBLEM-1_RESULTS: "${{ steps.problem-1.outputs.result }}"
+          PROBLEM-2_RESULTS: "${{ steps.problem-2.outputs.result }}"
+          PROBLEM-3_RESULTS: "${{ steps.problem-3.outputs.result }}"
+          PROBLEM-4_RESULTS: "${{ steps.problem-4.outputs.result }}"
+          PROBLEM-5_RESULTS: "${{ steps.problem-5.outputs.result }}"
+          PROBLEM-6_RESULTS: "${{ steps.problem-6.outputs.result }}"
+          PROBLEM-7_RESULTS: "${{ steps.problem-7.outputs.result }}"
+          PROBLEM-8_RESULTS: "${{ steps.problem-8.outputs.result }}"
+        with:
+          runners: problem-1, problem-2, problem-3, problem-4, problem-5, problem-6, problem-7, problem-8
