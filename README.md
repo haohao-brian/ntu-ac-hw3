@@ -89,10 +89,10 @@ The outputs should match exactly if your translation is correct.
 
 ## Do and Don't
 
-- You are allowed to modify any part of the starter code within the src/ directory to suit your approach. While the current structure serves as a guideline, ensuring the driver script functions properly is key for grading.
+- You are allowed to modify any part of the starter code within the src/ directory, except for src/driver.py, to suit your approach.
 - Make sure you have a solid understanding of LLVM IR and its mapping from Bril IR before starting your implementation.
 - Ensure your student ID is correctly entered in the student_id.txt file before submission.
-- DO NOT modify anything outside the src/ directory except student_id.txt. Any such changes will be considered cheating.
+- DO NOT modify the src/driver.py file or anything outside the src/ directory except student_id.txt. Any such changes will be considered cheating.
 
 ## Additional Resources
 
