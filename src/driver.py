@@ -6,9 +6,9 @@ from ssa_to_llvm import bril_to_llvm
 def main():
     import argparse
 
-    parser = argparse.ArgumentParser(description='SSA Construction for Bril Programs')
+    parser = argparse.ArgumentParser(description='Convert Bril programs to LLVM IR')
     parser.add_argument('--input', type=str, help='Input Bril JSON file', default=None)
-    parser.add_argument('--output', type=str, help='Output Bril JSON file', default=None)
+    parser.add_argument('--output', type=str, help='Output LLVM IR file', default=None)
     args = parser.parse_args()
 
     if args.input:
