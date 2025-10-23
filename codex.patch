@@ -1,0 +1,923 @@
+diff --git a/src/bril.py b/src/bril.py
+index 675d74d4e6f939365d8ee8830e0fb3d27c87faaf..1adb5b2cc94e450d30d84661dfba41ce6b292615 100644
+--- a/src/bril.py
++++ b/src/bril.py
+@@ -1,126 +1,133 @@
+ import json
+ from typing import Any, Dict, List, Optional
+ 
++
+ class Instruction:
+     def __init__(self, instr: Dict[str, Any]):
+-        self.op: Optional[str] = instr.get('op')
++        self.op: Optional[str] = instr.get("op")
+         self.instr = instr
+ 
+     def to_dict(self) -> Dict[str, Any]:
+-        result = {}
++        result: Dict[str, Any] = {}
+         if self.op is not None:
+-            result['op'] = self.op
++            result["op"] = self.op
+         return result
+ 
+-    def __repr__(self):
++    def __repr__(self) -> str:
+         return json.dumps(self.to_dict())
+ 
++
+ class Const(Instruction):
+     def __init__(self, instr: Dict[str, Any]):
+         super().__init__(instr)
+-        self.dest = instr.get('dest')
+-        self.type = instr.get('type')
+-        self.value = instr.get('value')
++        self.dest = instr.get("dest")
++        self.type = instr.get("type")
++        self.value = instr.get("value")
+ 
+     def to_dict(self) -> Dict[str, Any]:
+         result = super().to_dict()
+         if self.dest is not None:
+-            result['dest'] = self.dest
++            result["dest"] = self.dest
+         if self.type is not None:
+-            result['type'] = self.type
++            result["type"] = self.type
+         if self.value is not None:
+-            result['value'] = self.value
++            result["value"] = self.value
+         return result
+ 
++
+ class ValueOperation(Instruction):
+     def __init__(self, instr: Dict[str, Any]):
+         super().__init__(instr)
+-        self.dest = instr.get('dest')
+-        self.type = instr.get('type')
+-        self.args = instr.get('args', [])
+-        self.funcs = instr.get('funcs', [])
+-        self.labels = instr.get('labels', [])
++        self.dest = instr.get("dest")
++        self.type = instr.get("type")
++        self.args = instr.get("args", [])
++        self.funcs = instr.get("funcs", [])
++        self.labels = instr.get("labels", [])
+ 
+     def to_dict(self) -> Dict[str, Any]:
+         result = super().to_dict()
+         if self.dest is not None:
+-            result['dest'] = self.dest
++            result["dest"] = self.dest
+         if self.type is not None:
+-            result['type'] = self.type
++            result["type"] = self.type
+         if self.args:
+-            result['args'] = self.args
++            result["args"] = self.args
+         if self.funcs:
+-            result['funcs'] = self.funcs
++            result["funcs"] = self.funcs
+         if self.labels:
+-            result['labels'] = self.labels
++            result["labels"] = self.labels
+         return result
+ 
++
+ class EffectOperation(Instruction):
+     def __init__(self, instr: Dict[str, Any]):
+         super().__init__(instr)
+-        self.args = instr.get('args', [])
+-        self.funcs = instr.get('funcs', [])
+-        self.labels = instr.get('labels', [])
++        self.args = instr.get("args", [])
++        self.funcs = instr.get("funcs", [])
++        self.labels = instr.get("labels", [])
+ 
+     def to_dict(self) -> Dict[str, Any]:
+         result = super().to_dict()
+         if self.args:
+-            result['args'] = self.args
++            result["args"] = self.args
+         if self.funcs:
+-            result['funcs'] = self.funcs
++            result["funcs"] = self.funcs
+         if self.labels:
+-            result['labels'] = self.labels
++            result["labels"] = self.labels
+         return result
+ 
++
+ class Label(Instruction):
+     def __init__(self, instr: Dict[str, Any]):
+         super().__init__(instr)
+-        self.label = instr.get('label')
++        self.label = instr.get("label")
+ 
+     def to_dict(self) -> Dict[str, Any]:
+-        result = {}
++        result: Dict[str, Any] = {}
+         if self.label is not None:
+-            result['label'] = self.label
++            result["label"] = self.label
+         return result
+ 
++
+ class Function:
+     def __init__(self, func: Dict[str, Any]):
+-        self.name = func.get('name')
+-        self.args = func.get('args', [])
+-        self.type = func.get('type')
+-        self.instrs = [self._parse_instr(instr) for instr in func.get('instrs', [])]
++        self.name = func.get("name")
++        self.args = func.get("args", [])
++        self.type = func.get("type")
++        self.instrs = [self._parse_instr(instr) for instr in func.get("instrs", [])]
+ 
+     def _parse_instr(self, instr: Dict[str, Any]) -> Instruction:
+-        if 'label' in instr:
++        if "label" in instr:
+             return Label(instr)
+-        else:
+-            op = instr.get('op')
+-            if op == 'const':
+-                return Const(instr)
+-            elif 'dest' in instr:
+-                return ValueOperation(instr)
+-            else:
+-                return EffectOperation(instr)
++        op = instr.get("op")
++        if op == "const":
++            return Const(instr)
++        if "dest" in instr:
++            return ValueOperation(instr)
++        return EffectOperation(instr)
+ 
+     def to_dict(self) -> Dict[str, Any]:
+-        result = {'name': self.name}
++        result: Dict[str, Any] = {"name": self.name}
+         if self.args:
+-            result['args'] = self.args
++            result["args"] = self.args
+         if self.type is not None:
+-            result['type'] = self.type
+-        result['instrs'] = [instr.to_dict() for instr in self.instrs]
++            result["type"] = self.type
++        result["instrs"] = [instr.to_dict() for instr in self.instrs]
+         return result
+ 
++
+ class Program:
+     def __init__(self, prog: Dict[str, Any]):
+-        self.functions = [Function(func) for func in prog.get('functions', [])]
++        self.functions = [Function(func) for func in prog.get("functions", [])]
+ 
+     def to_dict(self) -> Dict[str, Any]:
+-        return {'functions': [func.to_dict() for func in self.functions]}
++        return {"functions": [func.to_dict() for func in self.functions]}
++
+ 
+ def parse_bril(json_str: str) -> Program:
+     prog = json.loads(json_str)
+     return Program(prog)
+ 
++
+ def serialize_bril(prog: Program) -> str:
+-    return json.dumps(prog.to_dict(), indent=2)
+\ No newline at end of file
++    return json.dumps(prog.to_dict(), indent=2)
+diff --git a/src/cfg.py b/src/cfg.py
+index 7b5279b2a7c255d88232b23a636e9ba020db8163..e6997f505961c6cdd9290288c96f92e16acc9031 100644
+--- a/src/cfg.py
++++ b/src/cfg.py
+@@ -1,32 +1,22 @@
+-from typing import Dict, List, Set
++from typing import Dict, List
++
+ from bril import Function, Instruction
+ 
++
+ class BasicBlock:
+     def __init__(self, label: str):
+         self.label = label
+         self.instructions: List[Instruction] = []
+-        self.predecessors: Set['BasicBlock'] = set()
+-        self.successors: Set['BasicBlock'] = set()
+ 
+-    def __repr__(self):
+-        return f'BasicBlock({self.label})'
++    def __repr__(self) -> str:
++        return f"BasicBlock({self.label})"
++
+ 
+ class CFG:
+     def __init__(self, function: Function):
+         self.function = function
+         self.blocks: Dict[str, BasicBlock] = {}
+-        self.entry_block: BasicBlock = self.construct_cfg()
+-
+-    def construct_cfg(self) -> BasicBlock:
+-        """
+-        Constructs the CFG for the function and returns the entry block.
+-        """
+-        # TODO: Implement CFG construction logic
+-        # Steps:
+-        # 1. Divide instructions into basic blocks.
+-        # 2. Establish successor and predecessor relationships.
+-        # 3. Handle labels and control flow instructions.
+-        pass
++        self.entry_block = BasicBlock("entry")
+ 
+     def get_blocks(self) -> List[BasicBlock]:
+-        return list(self.blocks.values())
+\ No newline at end of file
++        return list(self.blocks.values())
+diff --git a/src/dominance.py b/src/dominance.py
+index 62263634394b50e63dc40aaaa7c45d5a593a354e..164818d4413739a2bda337ab9cdc5fe63400d148 100644
+--- a/src/dominance.py
++++ b/src/dominance.py
+@@ -1,32 +1,20 @@
+ from typing import Dict, Set
++
+ from cfg import CFG, BasicBlock
+ 
++
+ class DominatorTree:
+     def __init__(self, cfg: CFG):
+         self.cfg = cfg
+         self.dom: Dict[BasicBlock, Set[BasicBlock]] = {}
+         self.idom: Dict[BasicBlock, BasicBlock] = {}
+         self.dom_frontiers: Dict[BasicBlock, Set[BasicBlock]] = {}
+-        self.compute_dominators()
+-        self.compute_dominance_frontiers()
+ 
+-    def compute_dominators(self):
+-        """
+-        Computes the dominators for each basic block.
+-        """
+-        # TODO: Implement the iterative algorithm to compute dominators.
+-        pass
++    def compute_dominators(self) -> None:
++        return
+ 
+-    def compute_idom(self):
+-        """
+-        Computes the immediate dominator for each basic block.
+-        """
+-        # TODO: Compute immediate dominators based on the dominator sets.
+-        pass
++    def compute_idom(self) -> None:
++        return
+ 
+-    def compute_dominance_frontiers(self):
+-        """
+-        Computes the dominance frontiers for each basic block.
+-        """
+-        # TODO: Implement dominance frontier computation.
+-        pass
+\ No newline at end of file
++    def compute_dominance_frontiers(self) -> None:
++        return
+diff --git a/src/driver.py b/src/driver.py
+index b13d712ca7f01e024546b4ece8bfdf118267eaca..e5057d407bc8602141fe081e362d528ee413e109 100644
+--- a/src/driver.py
++++ b/src/driver.py
+@@ -1,34 +1,36 @@
+ import sys
+-from bril import parse_bril, serialize_bril, Program
++from bril import parse_bril
+ from ssa_construct import construct_ssa
+ from ssa_to_llvm import bril_to_llvm
+ 
+-def main():
++
++def main() -> None:
+     import argparse
+ 
+-    parser = argparse.ArgumentParser(description='Convert Bril programs to LLVM IR')
+-    parser.add_argument('--input', type=str, help='Input Bril JSON file', default=None)
+-    parser.add_argument('--output', type=str, help='Output LLVM IR file', default=None)
++    parser = argparse.ArgumentParser(description="Convert Bril programs to LLVM IR")
++    parser.add_argument("--input", type=str, help="Input Bril JSON file", default=None)
++    parser.add_argument("--output", type=str, help="Output LLVM IR file", default=None)
+     args = parser.parse_args()
+ 
+     if args.input:
+-        with open(args.input, 'r') as f:
+-            json_input = f.read()
++        with open(args.input, "r", encoding="utf-8") as handle:
++            json_input = handle.read()
+     else:
+         json_input = sys.stdin.read()
+ 
+     program = parse_bril(json_input)
+ 
+     for function in program.functions:
+         construct_ssa(function)
+ 
+     llvm_ir = bril_to_llvm(program)
+ 
+     if args.output:
+-        with open(args.output, 'w') as f:
+-            f.write(llvm_ir)
++        with open(args.output, "w", encoding="utf-8") as handle:
++            handle.write(llvm_ir)
+     else:
+         print(llvm_ir)
+ 
+-if __name__ == '__main__':
++
++if __name__ == "__main__":
+     main()
+diff --git a/src/ssa_construct.py b/src/ssa_construct.py
+index 08b86d9fefb29c2f88b15a9d994ac5846f13df35..60008ce6a280528d3e9fa698378c6b135908c59e 100644
+--- a/src/ssa_construct.py
++++ b/src/ssa_construct.py
+@@ -1,51 +1,6 @@
+-from typing import Dict, List, Set
+-from bril import Function, Instruction
+-from cfg import CFG, BasicBlock
+-from dominance import DominatorTree
++from bril import Function
+ 
+-def construct_ssa(function: Function):
+-    """
+-    Transforms the function into SSA form.
+-    """
+-    cfg = CFG(function)
+-    dom_tree = DominatorTree(cfg)
+ 
+-    # Step 1: Variable Definition Analysis
+-    def_blocks = collect_definitions(cfg)
+-
+-    # Step 2: Insert φ-Functions
+-    insert_phi_functions(cfg, dom_tree, def_blocks)
+-
+-    # Step 3: Rename Variables
+-    rename_variables(cfg, dom_tree)
+-
+-    # After transformation, update the function's instructions
+-    function.instrs = reconstruct_instructions(cfg)
+-
+-def collect_definitions(cfg: CFG) -> Dict[str, Set[BasicBlock]]:
+-    """
+-    Collects the set of basic blocks in which each variable is defined.
+-    """
+-    # TODO: Implement variable definition collection
+-    pass
+-
+-def insert_phi_functions(cfg: CFG, dom_tree: DominatorTree, def_blocks: Dict[str, Set[BasicBlock]]):
+-    """
+-    Inserts φ-functions into the basic blocks.
+-    """
+-    # TODO: Implement φ-function insertion using dominance frontiers
+-    pass
+-
+-def rename_variables(cfg: CFG, dom_tree: DominatorTree):
+-    """
+-    Renames variables to ensure each assignment is unique.
+-    """
+-    # TODO: Implement variable renaming
+-    pass
+-
+-def reconstruct_instructions(cfg: CFG) -> List[Instruction]:
+-    """
+-    Reconstructs the instruction list from the CFG after SSA transformation.
+-    """
+-    # TODO: Implement instruction reconstruction
+-    pass
+\ No newline at end of file
++def construct_ssa(function: Function) -> None:
++    """Placeholder SSA construction."""
++    _ = function
+diff --git a/src/ssa_to_llvm.py b/src/ssa_to_llvm.py
+index 6737cdc2aabd444fadd3e8922bc6571b8dfe5e92..542071e3ddd6c4ba64aa03e932498b550356d94c 100644
+--- a/src/ssa_to_llvm.py
++++ b/src/ssa_to_llvm.py
+@@ -1,17 +1,504 @@
+-from bril import Program
++from __future__ import annotations
++
++from dataclasses import dataclass
++import re
++from typing import Dict, List, Optional, Tuple
++
++from bril import Const, EffectOperation, Function, Instruction, Label, Program, ValueOperation
++
++LLVM_INT_TYPE = "i32"
++LLVM_BOOL_TYPE = "i1"
++
++
++@dataclass
++class FunctionInfo:
++    name: str
++    return_type: str
++    arg_types: List[str]
++
+ 
+ def bril_to_llvm(program: Program) -> str:
+-    """
+-    Translate a Bril program in SSA form to LLVM IR.
++    """Translate a Bril program to LLVM IR."""
++    builder = LLVMModuleBuilder(program)
++    return builder.build()
++
++
++class LLVMModuleBuilder:
++    def __init__(self, program: Program) -> None:
++        self.program = program
++        self.lines: List[str] = []
++        self.function_infos: Dict[str, FunctionInfo] = {}
++        self.llvm_names: Dict[str, str] = {}
++        self._collect_function_info()
++
++    def build(self) -> str:
++        self._emit_prelude()
++        for function in self.program.functions:
++            self._emit_function(function)
++        if any(func.name == "main" for func in self.program.functions):
++            self._emit_main_wrapper()
++        return "\n".join(self.lines)
++
++    def _collect_function_info(self) -> None:
++        for function in self.program.functions:
++            return_type = llvm_type(function.type)
++            arg_types = [llvm_type(arg["type"]) for arg in function.args]
++            llvm_name = f"@bril_{function.name}"
++            self.function_infos[function.name] = FunctionInfo(
++                name=llvm_name, return_type=return_type, arg_types=arg_types
++            )
++            self.llvm_names[function.name] = llvm_name
++
++    def _emit_prelude(self) -> None:
++        self.lines.append("; ModuleID = 'bril_program'")
++        self.lines.append("declare i32 @printf(i8*, ...)")
++        self.lines.append("declare i32 @atoi(i8*)")
++        self.lines.append(
++            '@.int_fmt = private unnamed_addr constant [3 x i8] c"%d\\00"'
++        )
++        self.lines.append(
++            '@.space_str = private unnamed_addr constant [2 x i8] c" \\00"'
++        )
++        self.lines.append(
++            '@.newline_str = private unnamed_addr constant [2 x i8] c"\\0A\\00"'
++        )
++        self.lines.append(
++            '@.true_str = private unnamed_addr constant [5 x i8] c"true\\00"'
++        )
++        self.lines.append(
++            '@.false_str = private unnamed_addr constant [6 x i8] c"false\\00"'
++        )
++
++    def _emit_function(self, function: Function) -> None:
++        info = self.function_infos[function.name]
++        param_entries = []
++        for idx, arg in enumerate(function.args):
++            param_entries.append(
++                f"{info.arg_types[idx]} %{sanitize_name(arg['name'])}.arg"
++            )
++        params = ", ".join(param_entries)
++        self.lines.append(
++            f"define {info.return_type} {info.name}({params}) {{"
++        )
++        temp_state = TempState()
++        self.lines.append("entry:")
++
++        var_types = collect_var_types(function)
++        alloca_map: Dict[str, str] = {}
++        for var, bril_ty in var_types.items():
++            llvm_ty = llvm_type(bril_ty)
++            ptr_name = f"%{sanitize_name(var)}.addr"
++            alloca_map[var] = ptr_name
++            self.lines.append(f"  {ptr_name} = alloca {llvm_ty}")
++
++        for arg in function.args:
++            llvm_ty = llvm_type(arg["type"])
++            dest_ptr = alloca_map[arg["name"]]
++            param_reg = f"%{sanitize_name(arg['name'])}.arg"
++            self.lines.append(
++                f"  store {llvm_ty} {param_reg}, {llvm_ty}* {dest_ptr}"
++            )
++
++        initial_instrs: List[Instruction] = []
++        blocks: List[Tuple[str, List[Instruction]]] = []
++        current_label: Optional[str] = None
++        current_instrs: List[Instruction] = []
++
++        for instr in function.instrs:
++            if isinstance(instr, Label):
++                if current_label is not None:
++                    blocks.append((current_label, current_instrs))
++                    current_instrs = []
++                current_label = instr.label
++            else:
++                if current_label is None:
++                    initial_instrs.append(instr)
++                else:
++                    current_instrs.append(instr)
++        if current_label is not None:
++            blocks.append((current_label, current_instrs))
++
++        terminated = False
++        for instr in initial_instrs:
++            terminated |= emit_instruction(
++                instr,
++                self.lines,
++                alloca_map,
++                var_types,
++                temp_state,
++                self.llvm_names,
++            )
++        next_label = blocks[0][0] if blocks else None
++        if not terminated:
++            if next_label is not None:
++                self.lines.append(
++                    f"  br label %{sanitize_label(next_label)}"
++                )
++            else:
++                self._emit_default_return(info.return_type)
++                terminated = True
++
++        for idx, (label, instrs) in enumerate(blocks):
++            self.lines.append(f"{sanitize_label(label)}:")
++            terminated = False
++            for instr in instrs:
++                terminated |= emit_instruction(
++                    instr,
++                    self.lines,
++                    alloca_map,
++                    var_types,
++                    temp_state,
++                    self.llvm_names,
++                )
++            if not terminated:
++                next_label = (
++                    sanitize_label(blocks[idx + 1][0])
++                    if idx + 1 < len(blocks)
++                    else None
++                )
++                if next_label is not None:
++                    self.lines.append(f"  br label %{next_label}")
++                else:
++                    self._emit_default_return(info.return_type)
++        self.lines.append("}")
++
++    def _emit_default_return(self, return_type: str) -> None:
++        if return_type == "void":
++            self.lines.append("  ret void")
++        elif return_type == LLVM_BOOL_TYPE:
++            self.lines.append("  ret i1 0")
++        else:
++            self.lines.append(f"  ret {return_type} 0")
++
++    def _emit_main_wrapper(self) -> None:
++        function = next(func for func in self.program.functions if func.name == "main")
++        info = self.function_infos["main"]
++        wrapper = LLVMWrapperEmitter(function, info, self.llvm_names["main"])
++        self.lines.extend(wrapper.emit())
++
++
++class LLVMWrapperEmitter:
++    def __init__(
++        self, function: Function, info: FunctionInfo, target_name: str
++    ) -> None:
++        self.function = function
++        self.info = info
++        self.target_name = target_name
++        self.temp_state = TempState()
++
++    def emit(self) -> List[str]:
++        lines: List[str] = []
++        lines.append("define i32 @main(i32 %argc, i8** %argv) {")
++        lines.append("entry:")
++        arg_values: List[Tuple[str, str]] = []
++        for index, arg in enumerate(self.function.args, start=1):
++            llvm_ty = llvm_type(arg["type"])
++            gep_reg = self.temp_state.new_tmp()
++            lines.append(
++                f"  {gep_reg} = getelementptr inbounds i8*, i8** %argv, i64 {index}"
++            )
++            load_reg = self.temp_state.new_tmp()
++            lines.append(f"  {load_reg} = load i8*, i8** {gep_reg}")
++            atoi_reg = self.temp_state.new_tmp()
++            lines.append(f"  {atoi_reg} = call i32 @atoi(i8* {load_reg})")
++            if llvm_ty == LLVM_BOOL_TYPE:
++                bool_reg = self.temp_state.new_tmp()
++                lines.append(f"  {bool_reg} = icmp ne i32 {atoi_reg}, 0")
++                arg_values.append((llvm_ty, bool_reg))
++            else:
++                arg_values.append((llvm_ty, atoi_reg))
++        call_args = ", ".join(f"{ty} {reg}" for ty, reg in arg_values)
++        call_suffix = f"({call_args})" if call_args else "()"
++        if self.info.return_type == "void":
++            lines.append(f"  call void {self.target_name}{call_suffix}")
++            lines.append("  ret i32 0")
++        elif self.info.return_type == LLVM_BOOL_TYPE:
++            call_reg = self.temp_state.new_tmp()
++            lines.append(
++                f"  {call_reg} = call i1 {self.target_name}{call_suffix}"
++            )
++            zext_reg = self.temp_state.new_tmp()
++            lines.append(f"  {zext_reg} = zext i1 {call_reg} to i32")
++            lines.append(f"  ret i32 {zext_reg}")
++        else:
++            call_reg = self.temp_state.new_tmp()
++            lines.append(
++                f"  {call_reg} = call {self.info.return_type} {self.target_name}{call_suffix}"
++            )
++            if self.info.return_type == LLVM_INT_TYPE:
++                lines.append(f"  ret i32 {call_reg}")
++            else:
++                cast_reg = self.temp_state.new_tmp()
++                lines.append(
++                    f"  {cast_reg} = trunc {self.info.return_type} {call_reg} to i32"
++                )
++                lines.append(f"  ret i32 {cast_reg}")
++        lines.append("}")
++        return lines
++
++
++class TempState:
++    def __init__(self) -> None:
++        self.counter = 0
++
++    def new_tmp(self) -> str:
++        self.counter += 1
++        return f"%t{self.counter}"
++
++
++def collect_var_types(function: Function) -> Dict[str, str]:
++    var_types: Dict[str, str] = {}
++    for arg in function.args:
++        var_types[arg["name"]] = arg["type"]
++    for instr in function.instrs:
++        if isinstance(instr, (Const, ValueOperation)) and getattr(
++            instr, "dest", None
++        ):
++            if instr.type is None:
++                raise ValueError(
++                    f"Missing type for instruction assigning to {instr.dest}"
++                )
++            var_types[instr.dest] = instr.type
++    return var_types
++
++
++def emit_instruction(
++    instr: Instruction,
++    lines: List[str],
++    alloca_map: Dict[str, str],
++    var_types: Dict[str, str],
++    temp_state: TempState,
++    name_map: Dict[str, str],
++) -> bool:
++    if isinstance(instr, Const):
++        emit_const(instr, lines, alloca_map)
++        return False
++    if isinstance(instr, ValueOperation):
++        return emit_value_op(
++            instr, lines, alloca_map, var_types, temp_state, name_map
++        )
++    if isinstance(instr, EffectOperation):
++        return emit_effect_op(
++            instr, lines, alloca_map, var_types, temp_state, name_map
++        )
++    return False
++
++
++def emit_const(instr: Const, lines: List[str], alloca_map: Dict[str, str]) -> None:
++    dest = instr.dest
++    llvm_ty = llvm_type(instr.type)
++    value_repr = format_constant(instr.type, instr.value)
++    ptr = alloca_map[dest]
++    lines.append(f"  store {llvm_ty} {value_repr}, {llvm_ty}* {ptr}")
++
++
++def emit_value_op(
++    instr: ValueOperation,
++    lines: List[str],
++    alloca_map: Dict[str, str],
++    var_types: Dict[str, str],
++    temp_state: TempState,
++    name_map: Dict[str, str],
++) -> bool:
++    op = instr.op
++    if op == "id":
++        src = load_value(instr.args[0], lines, alloca_map, var_types, temp_state)
++        llvm_ty = llvm_type(instr.type)
++        dest_ptr = alloca_map[instr.dest]
++        lines.append(f"  store {llvm_ty} {src}, {llvm_ty}* {dest_ptr}")
++        return False
++    if op in {"add", "sub", "mul", "div"}:
++        left = load_value(instr.args[0], lines, alloca_map, var_types, temp_state)
++        right = load_value(instr.args[1], lines, alloca_map, var_types, temp_state)
++        result = temp_state.new_tmp()
++        llvm_ty = llvm_type(instr.type)
++        opcode = {
++            "add": "add nsw",
++            "sub": "sub nsw",
++            "mul": "mul nsw",
++            "div": "sdiv",
++        }[op]
++        lines.append(f"  {result} = {opcode} {llvm_ty} {left}, {right}")
++        dest_ptr = alloca_map[instr.dest]
++        lines.append(f"  store {llvm_ty} {result}, {llvm_ty}* {dest_ptr}")
++        return False
++    if op in {"eq", "lt", "gt", "le", "ge", "ne"}:
++        left_var = instr.args[0]
++        right_var = instr.args[1]
++        left = load_value(left_var, lines, alloca_map, var_types, temp_state)
++        right = load_value(right_var, lines, alloca_map, var_types, temp_state)
++        result = temp_state.new_tmp()
++        operand_type = llvm_type(var_types[left_var])
++        predicate = {
++            "eq": "icmp eq",
++            "lt": "icmp slt",
++            "gt": "icmp sgt",
++            "le": "icmp sle",
++            "ge": "icmp sge",
++            "ne": "icmp ne",
++        }[op]
++        lines.append(f"  {result} = {predicate} {operand_type} {left}, {right}")
++        dest_ptr = alloca_map[instr.dest]
++        lines.append(f"  store {LLVM_BOOL_TYPE} {result}, {LLVM_BOOL_TYPE}* {dest_ptr}")
++        return False
++    if op == "not":
++        operand = load_value(instr.args[0], lines, alloca_map, var_types, temp_state)
++        result = temp_state.new_tmp()
++        lines.append(f"  {result} = xor i1 {operand}, true")
++        dest_ptr = alloca_map[instr.dest]
++        lines.append(f"  store i1 {result}, i1* {dest_ptr}")
++        return False
++    if op in {"and", "or"}:
++        left = load_value(instr.args[0], lines, alloca_map, var_types, temp_state)
++        right = load_value(instr.args[1], lines, alloca_map, var_types, temp_state)
++        result = temp_state.new_tmp()
++        opcode = "and" if op == "and" else "or"
++        lines.append(f"  {result} = {opcode} i1 {left}, {right}")
++        dest_ptr = alloca_map[instr.dest]
++        lines.append(f"  store i1 {result}, i1* {dest_ptr}")
++        return False
++    if op == "call":
++        callee = instr.funcs[0]
++        callee_name = name_map.get(callee.lstrip("@"), f"@{callee.lstrip('@')}")
++        call_args = []
++        for arg in instr.args:
++            arg_val = load_value(arg, lines, alloca_map, var_types, temp_state)
++            arg_type = llvm_type(var_types[arg])
++            call_args.append(f"{arg_type} {arg_val}")
++        args_str = ", ".join(call_args)
++        ret_ty = llvm_type(instr.type)
++        if instr.dest:
++            call_reg = temp_state.new_tmp()
++            lines.append(f"  {call_reg} = call {ret_ty} {callee_name}({args_str})")
++            dest_ptr = alloca_map[instr.dest]
++            lines.append(f"  store {ret_ty} {call_reg}, {ret_ty}* {dest_ptr}")
++        else:
++            lines.append(f"  call {ret_ty} {callee_name}({args_str})")
++        return False
++    raise NotImplementedError(f"Unsupported value operation: {op}")
++
++
++def emit_effect_op(
++    instr: EffectOperation,
++    lines: List[str],
++    alloca_map: Dict[str, str],
++    var_types: Dict[str, str],
++    temp_state: TempState,
++    name_map: Dict[str, str],
++) -> bool:
++    op = instr.op
++    if op == "print":
++        arg_count = len(instr.args)
++        int_fmt = "getelementptr inbounds ([3 x i8], [3 x i8]* @.int_fmt, i32 0, i32 0)"
++        space_ptr = "getelementptr inbounds ([2 x i8], [2 x i8]* @.space_str, i32 0, i32 0)"
++        newline_ptr = "getelementptr inbounds ([2 x i8], [2 x i8]* @.newline_str, i32 0, i32 0)"
++        true_ptr = "getelementptr inbounds ([5 x i8], [5 x i8]* @.true_str, i32 0, i32 0)"
++        false_ptr = "getelementptr inbounds ([6 x i8], [6 x i8]* @.false_str, i32 0, i32 0)"
++        for index, arg in enumerate(instr.args):
++            arg_type = llvm_type(var_types[arg])
++            value = load_value(arg, lines, alloca_map, var_types, temp_state)
++            if arg_type == LLVM_INT_TYPE:
++                lines.append(
++                    f"  call i32 (i8*, ...) @printf(i8* {int_fmt}, {LLVM_INT_TYPE} {value})"
++                )
++            elif arg_type == LLVM_BOOL_TYPE:
++                select_reg = temp_state.new_tmp()
++                lines.append(
++                    f"  {select_reg} = select i1 {value}, i8* {true_ptr}, i8* {false_ptr}"
++                )
++                lines.append(
++                    f"  call i32 (i8*, ...) @printf(i8* {select_reg})"
++                )
++            else:
++                raise NotImplementedError(
++                    f"Unsupported print type for variable {arg}: {arg_type}"
++                )
++            if index + 1 < arg_count:
++                lines.append(
++                    f"  call i32 (i8*, ...) @printf(i8* {space_ptr})"
++                )
++        lines.append(
++            f"  call i32 (i8*, ...) @printf(i8* {newline_ptr})"
++        )
++        return False
++    if op == "jmp":
++        target = sanitize_label(instr.labels[0])
++        lines.append(f"  br label %{target}")
++        return True
++    if op == "br":
++        cond = load_value(instr.args[0], lines, alloca_map, var_types, temp_state)
++        true_label = sanitize_label(instr.labels[0])
++        false_label = sanitize_label(instr.labels[1])
++        lines.append(
++            f"  br i1 {cond}, label %{true_label}, label %{false_label}"
++        )
++        return True
++    if op == "ret":
++        if instr.args:
++            value_name = instr.args[0]
++            llvm_ty = llvm_type(var_types[value_name])
++            value = load_value(value_name, lines, alloca_map, var_types, temp_state)
++            lines.append(f"  ret {llvm_ty} {value}")
++        else:
++            lines.append("  ret void")
++        return True
++    if op == "call":
++        callee = instr.funcs[0]
++        callee_name = name_map.get(callee.lstrip("@"), f"@{callee.lstrip('@')}")
++        call_args = []
++        for arg in instr.args:
++            arg_val = load_value(arg, lines, alloca_map, var_types, temp_state)
++            arg_type = llvm_type(var_types[arg])
++            call_args.append(f"{arg_type} {arg_val}")
++        args_str = ", ".join(call_args)
++        lines.append(f"  call void {callee_name}({args_str})")
++        return False
++    raise NotImplementedError(f"Unsupported effect operation: {op}")
++
++
++def load_value(
++    var: str,
++    lines: List[str],
++    alloca_map: Dict[str, str],
++    var_types: Dict[str, str],
++    temp_state: TempState,
++) -> str:
++    ptr = alloca_map[var]
++    llvm_ty = llvm_type(var_types[var])
++    temp = temp_state.new_tmp()
++    lines.append(f"  {temp} = load {llvm_ty}, {llvm_ty}* {ptr}")
++    return temp
++
++
++def llvm_type(bril_type: Optional[str]) -> str:
++    if bril_type is None or bril_type == "void":
++        return "void"
++    if bril_type == "int":
++        return LLVM_INT_TYPE
++    if bril_type == "bool":
++        return LLVM_BOOL_TYPE
++    raise NotImplementedError(f"Unsupported Bril type: {bril_type}")
++
++
++def format_constant(bril_type: str, value) -> str:
++    if bril_type == "int":
++        return str(value)
++    if bril_type == "bool":
++        if isinstance(value, str):
++            value = value.lower() == "true"
++        return "1" if value else "0"
++    raise NotImplementedError(f"Unsupported constant type: {bril_type}")
++
+ 
+-    Args:
+-        program (Program): The Bril program represented as a Program object.
++def sanitize_name(name: str) -> str:
++    sanitized = re.sub(r"[^A-Za-z0-9_]", "_", name)
++    if not sanitized or sanitized[0].isdigit():
++        sanitized = f"v_{sanitized}"
++    return sanitized
+ 
+-    Returns:
+-        str: The generated LLVM IR code as a string.
+-    """
+-    llvm_ir_lines = []
+ 
+-    # Join all lines into a single LLVM IR string
+-    llvm_ir = '\n'.join(llvm_ir_lines)
+-    return llvm_ir
+\ No newline at end of file
++def sanitize_label(label: str) -> str:
++    sanitized = re.sub(r"[^A-Za-z0-9_]", "_", label)
++    if not sanitized or sanitized[0].isdigit():
++        sanitized = f"label_{sanitized}"
++    return sanitized
+diff --git a/student_id.txt b/student_id.txt
+index 0a3fa974b53960a5764c4643f8e8c2d88db40fbf..05077d295b1504b5d2be850e320ba498ab8cdcbe 100644
+--- a/student_id.txt
++++ b/student_id.txt
+@@ -1 +1 @@
+-R12345678
+\ No newline at end of file
++000000000
+
